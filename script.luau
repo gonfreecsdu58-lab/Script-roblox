@@ -268,3 +268,22 @@ TabMouvements:AjouterTextBox("Taper vitesse personnalisée...", function(valeurT
 end)
 
 -- --- ONGLET 2 : AUTOMATISMES ---
+local TabAuto = Hub:CreerOnglet("Boucles Auto")
+local boucleSautActive = false
+TabAuto:AjouterToggle("Saut Automatique en boucle", function(etatDuToggle)
+boucleSautActive = etatDuToggle
+-- On lance une tâche en arrière-plan si activé
+task.spawn(function()
+while boucleSautActive do
+local char = LocalPlayer.Character
+if char and char:FindFirstChild("Humanoid") then
+char.Humanoid.Jump = true
+end
+task.wait(0.5) -- Attend une demi-seconde entre chaque saut
+end
+end)
+end)
+-- --- ONGLET 3 : INFOS CLIENT ---
+local TabInfos = Hub:CreerOnglet("À propos")
+TabInfos:AjouterBouton("Afficher mon pseudo dans les logs", function()
+print("Utilisateur actuel : " .. LocalPlayer.Name)
