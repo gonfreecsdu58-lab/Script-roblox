@@ -1,5 +1,5 @@
 -- =================================================================
--- INTERFACE GRAPHIQUE COMPLÈTE DE TEST (AUTONOME & DÉPLAÇABLE)
+-- HUB INTERFACE PREMIUM V2 - MULTI-ONGLETS & MULTI-FONCTIONS
 -- =================================================================
 
 local Players = game:GetService("Players")
@@ -7,54 +7,51 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
--- 1. CRÉATION DU CONTENEUR ET DE LA FENÊTRE
+-- 1. CRÉATION DU CONTENEUR PRINCIPAL
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "Pluplume"
+ScreenGui.Name = "PremiumHub_Gui"
 ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
+-- Fenêtre Principale
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 300, 0, 250)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -125)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.Size = UDim2.new(0, 500, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 
--- Ajout d'arrondis sur les coins
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = MainFrame
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
 
--- 2. BARRE DE TITRE (Zone pour drag/déplacer)
+-- 2. BARRE DE TITRE (Zone de Drag)
 local TitleBar = Instance.new("Frame")
-TitleBar.Name = "TitleBar"
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
-TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TitleBar.Size = UDim2.new(1, 0, 0, 45)
+TitleBar.BackgroundColor3 = Color3.fromRGB(28, 28, 30)
 TitleBar.BorderSizePixel = 0
 TitleBar.Parent = MainFrame
 
 local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.CornerRadius = UDim.new(0, 10)
 TitleCorner.Parent = TitleBar
 
 local TitleText = Instance.new("TextLabel")
-TitleText.Size = UDim2.new(1, -40, 1, 0)
+TitleText.Size = UDim2.new(1, -50, 1, 0)
 TitleText.Position = UDim2.new(0, 15, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "Pluplume hub"
+TitleText.Text = "Premium Dev Hub v2.0"
 TitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleText.Font = Enum.Font.SourceSansBold
-TitleText.TextSize = 16
+TitleText.TextSize = 18
 TitleText.TextXAlignment = Enum.TextXAlignment.Left
 TitleText.Parent = TitleBar
 
--- 3. BOUTON DE FERMETURE (X)
+-- Bouton Fermer (X)
 local CloseButton = Instance.new("TextButton")
-CloseButton.Name = "CloseButton"
 CloseButton.Size = UDim2.new(0, 30, 0, 30)
-CloseButton.Position = UDim2.new(1, -35, 0, 5)
-CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.Position = UDim2.new(1, -38, 0, 7)
+CloseButton.BackgroundColor3 = Color3.fromRGB(230, 75, 75)
 CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.Font = Enum.Font.SourceSansBold
@@ -64,107 +61,210 @@ CloseButton.Parent = TitleBar
 local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 6)
 CloseCorner.Parent = CloseButton
+CloseButton.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
-CloseButton.MouseButton1Click:Connect(function()
-	ScreenGui:Destroy() -- Ferme et supprime le menu de l'écran
-end)
+-- 3. PANNEAU DE GAUCHE (Pour la navigation des Onglets)
+local NavigationBar = Instance.new("Frame")
+NavigationBar.Size = UDim2.new(0, 130, 1, -45)
+NavigationBar.Position = UDim2.new(0, 0, 0, 45)
+NavigationBar.BackgroundColor3 = Color3.fromRGB(28, 28, 30)
+NavigationBar.BorderSizePixel = 0
+NavigationBar.Parent = MainFrame
 
--- 4. ZONE DE CONTENU (Pour aligner les boutons)
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Name = "ContentFrame"
-ContentFrame.Size = UDim2.new(1, -20, 1, -60)
-ContentFrame.Position = UDim2.new(0, 10, 0, 50)
-ContentFrame.BackgroundTransparency = 1
-ContentFrame.Parent = MainFrame
+local NavListLayout = Instance.new("UIListLayout")
+NavListLayout.Padding = UDim.new(0, 5)
+NavListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+NavListLayout.Parent = NavigationBar
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Padding = UDim.new(0, 10)
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Parent = ContentFrame
+-- 4. ZONE DE CONTENU (À droite, pour afficher les pages)
+local Container = Instance.new("Frame")
+Container.Size = UDim2.new(1, -140, 1, -55)
+Container.Position = UDim2.new(0, 135, 0, 50)
+Container.BackgroundTransparency = 1
+Container.Parent = MainFrame
 
--- 5. FONCTION POUR CRÉER FACILEMENT DES BOUTONS INTERACTIFS
-local function CreerBouton(texte, callback)
-	local Bouton = Instance.new("TextButton")
-	Bouton.Size = UDim2.new(1, 0, 0, 40)
-	Bouton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-	Bouton.Text = texte
-	Bouton.TextColor3 = Color3.fromRGB(230, 230, 230)
-	Bouton.Font = Enum.Font.SourceSans
-	Bouton.TextSize = 16
-	Bouton.Parent = ContentFrame
+-- =================================================================
+-- MOTEUR DE L'INTERFACE (GESTION DES ONGLETS & DES OBJETS)
+-- =================================================================
+local Hub = {}
+local premierOnglet = true
 
-	local BtnCorner = Instance.new("UICorner")
-	BtnCorner.CornerRadius = UDim.new(0, 6)
-	BtnCorner.Parent = Bouton
+function Hub:CreerOnglet(nomOnglet)
+	-- Création de la page de contenu cachée par défaut
+	local Page = Instance.new("ScrollingFrame")
+	Page.Size = UDim2.new(1, 0, 1, 0)
+	Page.BackgroundTransparency = 1
+	Page.Visible = premierOnglet
+	Page.CanvasSize = UDim2.new(0, 0, 0, 500)
+	Page.ScrollBarThickness = 2
+	Page.Parent = Container
 
-	-- Effets visuels au survol
-	Bouton.MouseEnter:Connect(function()
-		TweenService:Create(Bouton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+	local PageLayout = Instance.new("UIListLayout")
+	PageLayout.Padding = UDim.new(0, 8)
+	PageLayout.Parent = Page
+
+	-- Création du bouton d'onglet dans la barre de navigation
+	local TabButton = Instance.new("TextButton")
+	TabButton.Size = UDim2.new(0, 115, 0, 35)
+	TabButton.BackgroundColor3 = premierOnglet and Color3.fromRGB(45, 45, 48) or Color3.fromRGB(35, 35, 38)
+	TabButton.Text = nomOnglet
+	TabButton.TextColor3 = premierOnglet and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 180)
+	TabButton.Font = Enum.Font.SourceSansBold
+	TabButton.TextSize = 14
+	TabButton.Parent = NavigationBar
+
+	local TabCorner = Instance.new("UICorner")
+	TabCorner.CornerRadius = UDim.new(0, 6)
+	TabCorner.Parent = TabButton
+
+	premierOnglet = false
+
+	-- Système de changement d'onglet au clic
+	TabButton.MouseButton1Click:Connect(function()
+		for _, child in pairs(Container:GetChildren()) do
+			if child:IsA("ScrollingFrame") then child.Visible = false end
+		end
+		for _, btn in pairs(NavigationBar:GetChildren()) do
+			if btn:IsA("TextButton") then
+				btn.BackgroundColor3 = Color3.fromRGB(35, 35, 38)
+				btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+			end
+		end
+		Page.Visible = true
+		TabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 48)
+		TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 	end)
-	Bouton.MouseLeave:Connect(function()
-		TweenService:Create(Bouton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(45, 45, 45)}):Play()
-	end)
 
-	-- Liaison de la fonction au clic
-	Bouton.MouseButton1Click:Connect(function()
-		pcall(callback)
-	end)
+	-- OBJETS DISPONIBLES DANS CHAQUE ONGLET
+	local Elements = {}
+
+	-- Élément 1 : Bouton Simple
+	function Elements:AjouterBouton(texte, callback)
+		local Bouton = Instance.new("TextButton")
+		Bouton.Size = UDim2.new(1, -5, 0, 35)
+		Bouton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		Bouton.Text = texte
+		Bouton.TextColor3 = Color3.fromRGB(230, 230, 230)
+		Bouton.Font = Enum.Font.SourceSans
+		Bouton.TextSize = 15
+		Bouton.Parent = Page
+		Instance.new("UICorner", Bouton).CornerRadius = UDim.new(0, 5)
+
+		Bouton.MouseButton1Click:Connect(function() pcall(callback) end)
+	end
+
+	-- Élément 2 : Interrupteur (Toggle On/Off)
+	function Elements:AjouterToggle(texte, callback)
+		local ToggleFrame = Instance.new("Frame")
+		ToggleFrame.Size = UDim2.new(1, -5, 0, 35)
+		ToggleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		ToggleFrame.Parent = Page
+		Instance.new("UICorner", ToggleFrame).CornerRadius = UDim.new(0, 5)
+
+		local ToggleLabel = Instance.new("TextLabel")
+		ToggleLabel.Size = UDim2.new(1, -50, 1, 0)
+		ToggleLabel.Position = UDim2.new(0, 10, 0, 0)
+		ToggleLabel.BackgroundTransparency = 1
+		ToggleLabel.Text = texte
+		ToggleLabel.TextColor3 = Color3.fromRGB(230, 230, 230)
+		ToggleLabel.Font = Enum.Font.SourceSans
+		ToggleLabel.TextSize = 15
+		ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+		ToggleLabel.Parent = ToggleFrame
+
+		local Indicator = Instance.new("TextButton")
+		Indicator.Size = UDim2.new(0, 40, 0, 20)
+		Indicator.Position = UDim2.new(1, -45, 0, 7.5)
+		Indicator.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+		Indicator.Text = ""
+		Indicator.Parent = ToggleFrame
+		Instance.new("UICorner", Indicator).CornerRadius = UDim.new(0, 10)
+
+		local etat = false
+		Indicator.MouseButton1Click:Connect(function()
+			etat = not etat
+			TweenService:Create(Indicator, TweenInfo.new(0.2), {
+				BackgroundColor3 = etat and Color3.fromRGB(0, 180, 100) or Color3.fromRGB(70, 70, 70)
+			}):Play()
+			pcall(callback, etat)
+		end)
+	end
+
+	-- Élément 3 : Zone de Saisie (TextBox)
+	function Elements:AjouterTextBox(placeholder, callback)
+		local BoxFrame = Instance.new("Frame")
+		BoxFrame.Size = UDim2.new(1, -5, 0, 40)
+		BoxFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+		BoxFrame.Parent = Page
+		Instance.new("UICorner", BoxFrame).CornerRadius = UDim.new(0, 5)
+
+		local TextBox = Instance.new("TextBox")
+		TextBox.Size = UDim2.new(1, -20, 1, -10)
+		TextBox.Position = UDim2.new(0, 10, 0, 5)
+		TextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+		TextBox.PlaceholderText = placeholder
+		TextBox.Text = ""
+		TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TextBox.Font = Enum.Font.SourceSans
+		TextBox.TextSize = 14
+		TextBox.Parent = BoxFrame
+		Instance.new("UICorner", TextBox).CornerRadius = UDim.new(0, 4)
+
+		TextBox.FocusLost:Connect(function(enterPressed)
+			if enterPressed then
+				pcall(callback, TextBox.Text)
+			end
+		end)
+	end
+
+	return Elements
 end
 
 -- =================================================================
--- 6. SYSTÈME DE DRAG (Rend la fenêtre déplaçable avec la barre)
+-- 5. SYSTÈME DE DRAG (FENÊTRE DÉPLAÇABLE)
 -- =================================================================
 local dragging, dragInput, dragStart, startPos
-
 local function update(input)
 	local delta = input.Position - dragStart
 	MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
-
 TitleBar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = MainFrame.Position
-		
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true dragStart = input.Position startPos = MainFrame.Position
+		input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
 	end
 end)
+TitleBar.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end end)
+UserInputService.InputChanged:Connect(function(input) if input == dragInput and dragging then update(input) end end)
 
-TitleBar.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		update(input)
-	end
-end)
 
 -- =================================================================
--- 7. CONFIGURATION DE VOS BOUTONS ET DE LEURS FONCTIONS
+-- CRÉATION ET CONFIGURATION DES ONGLETS (À MODIFIER SELON VOS ENVIES)
 -- =================================================================
 
--- Bouton 1 : Test de modification de vitesse
-CreerBouton("Modifier Vitesse (WalkSpeed)", function()
-	local character = LocalPlayer.Character
-	if character and character:FindFirstChild("Humanoid") then
-		character.Humanoid.WalkSpeed = 60
-		print("[TEST] Vitesse définie à 60.")
+-- --- ONGLET 1 : MOUVEMENTS ---
+local TabMouvements = Hub:CreerOnglet("Mouvements")
+
+TabMouvements:AjouterBouton("Vitesse Flash (x100)", function()
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChild("Humanoid") then char.Humanoid.WalkSpeed = 100 end
+end)
+
+TabMouvements:AjouterBouton("Reset Physiques", function()
+	local char = LocalPlayer.Character
+	if char and char:FindFirstChild("Humanoid") then
+		char.Humanoid.WalkSpeed = 16
+		char.Humanoid.JumpPower = 50
 	end
 end)
 
--- Bouton 2 : Réinitialiser le personnage
-CreerBouton("Réinitialiser Vitesse", function()
-	local character = LocalPlayer.Character
-	if character and character:FindFirstChild("Humanoid") then
-		character.Humanoid.WalkSpeed = 16
-		print("[TEST] Vitesse remise par défaut.")
+TabMouvements:AjouterTextBox("Taper vitesse personnalisée...", function(valeurTexte)
+	local nombreVitesse = tonumber(valeurTexte)
+	local char = LocalPlayer.Character
+	if nombreVitesse and char and char:FindFirstChild("Humanoid") then
+		char.Humanoid.WalkSpeed = nombreVitesse
+		print("Vitesse définie via TextBox à : " .. nombreVitesse)
 	end
 end)
+
+-- --- ONGLET 2 : AUTOMATISMES ---
